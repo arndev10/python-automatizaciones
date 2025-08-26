@@ -1,0 +1,52 @@
+{
+	"folders": [
+		{
+			"path": "../../AUDIOS WHAT A TEXTO"
+		},
+		{
+			"path": "../../bizagi"
+		},
+		{
+			"path": "../../Extraer fotos excel"
+		},
+		{
+			"path": "../../ffmpeg-7.1"
+		},
+		{
+			"path": "../../ffmpeg-2025-02-24-git-6232f416b1-essentials_build"
+		},
+		{
+			"path": "../../MSI AUTOMATIZACIONES.PY"
+		},
+		{
+			"path": "../../PDF A MP3 VER 3"
+		},
+		{
+			"path": "../../PDF A MP3.PY VER1"
+		},
+		{
+			"path": "../../Segmentar libros"
+		},
+		{
+			"path": ".."
+		},
+		{
+			"path": "../../Traducir PDF español resumen"
+		},
+		{
+			"path": "../../WORD A MP3"
+		},
+		{
+			"path": "../../WORD A MP3 FINAL.PY"
+		},
+		{
+			"path": "../../WORD A MP3 VER2"
+		},
+		{
+			"path": "../../WORD A MP3 VER3"
+		}
+	],
+	"settings": {
+		"liveServer.settings.multiRootWorkspaceName": "TESTS"
+	}
+}

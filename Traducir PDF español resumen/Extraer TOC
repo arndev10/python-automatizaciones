@@ -1,0 +1,23 @@
+import os
+import fitz  # PyMuPDF
+
+# 1) Ajusta estas rutas a tu sistema
+carpeta = r"D:\LIBROS\Cracking the coding for interview\Libro"
+nombre_pdf = "Cracking the coding for interview.pdf"
+pdf_path = os.path.join(carpeta, nombre_pdf)
+
+# 2) Comprueba que el PDF exista
+if not os.path.isfile(pdf_path):
+    raise FileNotFoundError(f"No encontré el PDF en:\n{pdf_path}")
+
+# 3) Abre el documento
+doc = fitz.open(pdf_path)
+
+# 4) Extrae un TOC simple (lista de tuplas: nivel, título, página)
+toc = doc.get_toc(simple=True)
+
+# 5) Imprime el índice en consola
+print("Índice de “Cracking the Coding Interview”:\n")
+for nivel, titulo, pagina in toc:
+    indent = "  " * (nivel - 1)
+    print(f"{indent}- {titulo.strip()} … pág. {pagina}")

@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Identity — MVP</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <!-- Fuentes similares: Inter + Playfair Display -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=Playfair+Display:wght@600;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <!-- NAV -->
+  <header class="nav">
+    <a class="logo" href="#">Identity</a>
+    <nav class="nav-links">
+      <a href="#work">Work</a>
+      <a href="#services">Services</a>
+      <a href="#about">About</a>
+      <a class="btn" href="#contact">Start a project</a>
+    </nav>
+    <button class="nav-burger" aria-label="menu" onclick="document.body.classList.toggle('open')">
+      ☰
+    </button>
+  </header>
+
+  <!-- HERO -->
+  <section class="hero">
+    <div class="hero-tag">Brand • Strategy • Web</div>
+    <h1 class="hero-title">
+      We build bold brands and <span class="underline">web experiences</span> that
+      turn attention into action.
+    </h1>
+    <p class="hero-sub">
+      Boutique studio — strategy primero, diseño impecable y ejecuciones rápidas.
+    </p>
+    <div class="hero-cta">
+      <a class="btn" href="#contact">Let’s talk</a>
+      <a class="link" href="#work">See our work →</a>
+    </div>
+    <div class="hero-art">
+      <!-- Reemplaza por tu imagen/video -->
+      <img src="https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?q=80&w=1400&auto=format&fit=crop" alt="Hero visual" />
+    </div>
+  </section>
+
+  <!-- MARQUEE -->
+  <section class="marquee" aria-label="marquee">
+    <div class="track">
+      <span>Brand Strategy</span>
+      <span>Visual Identity</span>
+      <span>Web Design</span>
+      <span>No-code & Front-end</span>
+      <span>Content Direction</span>
+      <span>Brand Strategy</span>
+      <span>Visual Identity</span>
+      <span>Web Design</span>
+      <span>No-code & Front-end</span>
+      <span>Content Direction</span>
+    </div>
+  </section>
+
+  <!-- WORK -->
+  <section id="work" class="work">
+    <header class="sec-head">
+      <h2>Selected work</h2>
+      <p>Una muestra rápida de proyectos recientes.</p>
+    </header>
+
+    <div class="grid">
+      <!-- Card 1 -->
+      <article class="card">
+        <a href="#" class="card-media">
+          <img src="https://images.unsplash.com/photo-1545239351-1141bd82e8a6?q=80&w=1600&auto=format&fit=crop" alt="Proyecto 1">
+        </a>
+        <div class="card-body">
+          <h3>Nova Finance</h3>
+          <p>Rebranding completo y sitio web en 3 semanas.</p>
+          <div class="pill">Identity</div><div class="pill">Web</div>
+        </div>
+      </article>
+
+      <!-- Card 2 -->
+      <article class="card">
+        <a href="#" class="card-media">
+          <img src="https://images.unsplash.com/photo-1529336953121-ad5a0d43d0d2?q=80&w=1600&auto=format&fit=crop" alt="Proyecto 2">
+        </a>
+        <div class="card-body">
+          <h3>Arc Studio</h3>
+          <p>Dirección de arte y diseño editorial digital.</p>
+          <div class="pill">Art Direction</div><div class="pill">Site</div>
+        </div>
+      </article>
+
+      <!-- Card 3 -->
+      <article class="card">
+        <a href="#" class="card-media">
+          <img src="https://images.unsplash.com/photo-1515879218367-8466d910aaa4?q=80&w=1600&auto=format&fit=crop" alt="Proyecto 3">
+        </a>
+        <div class="card-body">
+          <h3>Peak Outdoors</h3>
+          <p>E-commerce minimalista con foco en conversión.</p>
+          <div class="pill">UX</div><div class="pill">Web</div>
+        </div>
+      </article>
+    </div>
+  </section>
+
+  <!-- SERVICES -->
+  <section id="services" class="services">
+    <header class="sec-head">
+      <h2>What we do</h2>
+      <p>De la estrategia a la entrega.</p>
+    </header>
+    <ul class="service-list">
+      <li><span>01</span> Brand Strategy & Positioning</li>
+      <li><span>02</span> Visual Identity Systems</li>
+      <li><span>03</span> Web Design & Front-end</li>
+      <li><span>04</span> Content & Creative Direction</li>
+    </ul>
+  </section>
+
+  <!-- TESTIMONIAL -->
+  <section class="quote">
+    <blockquote>
+      “Trabajar con Identity cambió la forma en que presentamos nuestro valor.
+      Pasamos de ‘bonito’ a ‘memorables’.”
+    </blockquote>
+    <p class="quote-author">— CEO, Nova Finance</p>
+  </section>
+
+  <!-- CTA -->
+  <section id="contact" class="cta">
+    <h2>Have a project in mind?</h2>
+    <p>Agenda una llamada de 20 min y te damos un plan de acción.</p>
+    <a class="btn btn-lg" href="mailto:hello@identity.studio">Start a project</a>
+  </section>
+
+  <!-- FOOTER -->
+  <footer class="footer">
+    <div>© 2025 Identity Studio</div>
+    <div class="social">
+      <a href="#">IG</a><a href="#">X</a><a href="#">LI</a>
+    </div>
+  </footer>
+
+  <!-- (Opcional) pequeño script para menú móvil -->
+  <script>
+    // Solo para cerrar el menú al hacer click en un link en mobile
+    document.querySelectorAll('.nav-links a').forEach(a=>{
+      a.addEventListener('click', ()=> document.body.classList.remove('open'));
+    });
+  </script>
+</body>
+</html>
