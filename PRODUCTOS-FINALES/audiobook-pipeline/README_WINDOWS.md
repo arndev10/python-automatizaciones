@@ -45,6 +45,20 @@ py audiobook_pipeline.py "ruta\al\archivo.pdf"
 | Generar audiolibro | `py audiobook_pipeline.py` | `python audiobook_pipeline.py` ❌ |
 | Ver version | `py --version` | `python --version` ❌ |
 
+## Instalacion de Dependencias
+
+**Primera vez que usas el proyecto:**
+
+1. **Opcion A: Script Batch (Mas Facil)**
+   - Haz doble clic en: `install_dependencies.bat`
+
+2. **Opcion B: Desde Terminal**
+```powershell
+cd "D:\VCODE\TEST 1\PRODUCTOS-FINALES\audiobook-pipeline"
+py -m pip install -r requirements.txt
+py -m nltk.downloader punkt stopwords
+```
+
 ## Por Que Usar `py`?
 
 - `py` es el Python Launcher de Windows que funciona correctamente
