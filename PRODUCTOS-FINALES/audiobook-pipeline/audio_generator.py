@@ -1,4 +1,4 @@
-"""Módulo para generar audio desde texto usando edge-tts."""
+"""Modulo para generar audio desde texto usando edge-tts."""
 import asyncio
 import edge_tts
 from pathlib import Path
@@ -11,7 +11,7 @@ async def get_spanish_female_voice() -> str:
     """Obtiene una voz femenina en español."""
     voices = await edge_tts.list_voices()
     
-    # Buscar voces femeninas en español
+    # Buscar voces femeninas en espanol
     # edge-tts devuelve diccionarios con claves como 'Locale', 'Gender', 'Name', 'ShortName'
     spanish_female_voices = []
     for voice in voices:
@@ -30,7 +30,7 @@ async def get_spanish_female_voice() -> str:
         
         if spanish_voices:
             return spanish_voices[0].get('Name', spanish_voices[0].get('ShortName', ''))
-        raise Exception("No se encontró voz en español")
+        raise Exception("No se encontro voz en espanol")
     
     # Preferir voces Microsoft (generalmente mejor calidad)
     preferred = []
@@ -89,8 +89,8 @@ async def text_to_speech(text: str, output_path: str, voice_name: str = None, ra
 
 
 def sanitize_filename(filename: str) -> str:
-    """Sanitiza nombre de archivo para evitar caracteres inválidos."""
-    # Remover caracteres inválidos
+    """Sanitiza nombre de archivo para evitar caracteres invalidos."""
+    # Remover caracteres invalidos
     invalid_chars = '<>:"/\\|?*'
     for char in invalid_chars:
         filename = filename.replace(char, '')
@@ -104,15 +104,15 @@ def sanitize_filename(filename: str) -> str:
 
 async def generate_chapter_audio(chapter_title: str, chapter_content: str, output_dir: Path, chapter_num: int) -> str:
     """
-    Genera audio para un capítulo.
+    Genera audio para un capitulo.
     
     Returns:
         Ruta del archivo MP3 generado
     """
-    # Sanitizar título para nombre de archivo
+    # Sanitizar titulo para nombre de archivo
     safe_title = sanitize_filename(chapter_title)
     
-    # Formatear número de capítulo con ceros a la izquierda
+    # Formatear numero de capitulo con ceros a la izquierda
     chapter_prefix = f"{chapter_num:02d} - {safe_title}"
     
     output_path = output_dir / f"{chapter_prefix}.mp3"

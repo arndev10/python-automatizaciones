@@ -1,4 +1,4 @@
-"""Módulo para adaptar texto a formato narrativo para audiolibro."""
+"""Modulo para adaptar texto a formato narrativo para audiolibro."""
 import re
 from typing import List
 from sumy.parsers.plaintext import PlaintextParser
@@ -81,7 +81,8 @@ def convert_lists_to_prose(text: str) -> str:
 
 def improve_sentence_flow(text: str) -> str:
     """Mejora el flujo de oraciones para audio."""
-    # Eliminar abreviaciones problemáticas
+    # NOTA: Mantenemos las tildes en el texto para el audio
+    # Eliminar abreviaciones problematicas
     text = re.sub(r'\bDr\.', 'Doctor', text)
     text = re.sub(r'\bSr\.', 'Señor', text)
     text = re.sub(r'\bSra\.', 'Señora', text)
@@ -90,7 +91,7 @@ def improve_sentence_flow(text: str) -> str:
     # Asegurar espacios después de puntuación
     text = re.sub(r'([.!?])([A-Z])', r'\1 \2', text)
     
-    # Eliminar espacios múltiples
+    # Eliminar espacios multiples
     text = re.sub(r' +', ' ', text)
     
     return text
@@ -100,12 +101,12 @@ def moderate_summarize(text: str, reduction_percent: float = 0.15) -> str:
     """
     Resumen moderado usando LSA (Latent Semantic Analysis).
     
-    reduction_percent: porcentaje de reducción (0.15 = 15% menos texto)
+    reduction_percent: porcentaje de reduccion (0.15 = 15% menos texto)
     """
     if not text.strip():
         return text
     
-    # Calcular número de oraciones objetivo
+    # Calcular numero de oraciones objetivo
     sentences = re.split(r'[.!?]+', text)
     sentences = [s.strip() for s in sentences if s.strip()]
     
@@ -135,8 +136,8 @@ def adapt_for_audiobook(text: str, apply_summary: bool = True) -> str:
     Adapta texto completo para audiolibro.
     
     Aplica:
-    - Eliminación de referencias visuales
-    - Conversión de listas a prosa
+    - Eliminacion de referencias visuales
+    - Conversion de listas a prosa
     - Mejora de flujo de oraciones
     - Resumen moderado (opcional)
     """

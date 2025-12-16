@@ -9,10 +9,15 @@ venv/
 ENV/
 .venv
 
-# Output
-output/
+# Output (mantener estructura pero ignorar contenido)
+output/*
+!output/.gitkeep
 *.mp3
 *.webm
+
+# Input (mantener estructura pero ignorar PDFs)
+input/*
+!input/.gitkeep
 
 # IDE
 .vscode/

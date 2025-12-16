@@ -1,4 +1,4 @@
-"""Módulo para detectar y segmentar capítulos."""
+"""Modulo para detectar y segmentar capitulos."""
 import re
 from typing import List, Tuple, Optional
 from dataclasses import dataclass
@@ -6,7 +6,7 @@ from dataclasses import dataclass
 
 @dataclass
 class Chapter:
-    """Representa un capítulo detectado."""
+    """Representa un capitulo detectado."""
     title: str
     content: str
     start_index: int
@@ -14,15 +14,16 @@ class Chapter:
 
 
 def detect_chapter_patterns(text: str) -> List[Tuple[int, str]]:
-    """Detecta patrones comunes de títulos de capítulo."""
+    """Detecta patrones comunes de titulos de capitulo."""
+    # NOTA: Los patrones regex mantienen tildes para detectar correctamente
     patterns = [
-        # "CAPÍTULO 1" o "CAPITULO 1"
+        # "CAPITULO 1" o "CAPITULO 1" (acepta con y sin tilde)
         r'(?i)^(?:cap[íi]tulo|cap\.?)\s*(\d+[a-z]?)[\.\s:]+(.+?)$',
-        # "Capítulo 1: Título"
+        # "Capitulo 1: Titulo" (acepta con y sin tilde)
         r'(?i)^cap[íi]tulo\s+(\d+[a-z]?)[\.\s:]+(.+?)$',
-        # "1. Título" (al inicio de línea, con número seguido de punto)
+        # "1. Titulo" (al inicio de linea, con numero seguido de punto)
         r'^(\d+[a-z]?)[\.\)]\s+(.+?)$',
-        # "I. Título" (números romanos)
+        # "I. Titulo" (numeros romanos)
         r'^([IVX]+)[\.\)]\s+(.+?)$',
         # "PARTE I" o "PARTE 1"
         r'(?i)^(?:parte|part)\s+([IVX\d]+)[\.\s:]+(.+?)$',
@@ -39,7 +40,7 @@ def detect_chapter_patterns(text: str) -> List[Tuple[int, str]]:
         for pattern in patterns:
             match = re.match(pattern, line_stripped)
             if match:
-                # Verificar que no sea solo un número suelto
+                # Verificar que no sea solo un numero suelto
                 if len(line_stripped) > 10 or any(c.isalpha() for c in line_stripped):
                     chapter_markers.append((i, line_stripped))
                     break
@@ -48,7 +49,7 @@ def detect_chapter_patterns(text: str) -> List[Tuple[int, str]]:
 
 
 def extract_chapters(text: str) -> List[Chapter]:
-    """Extrae capítulos del texto."""
+    """Extrae capitulos del texto."""
     chapter_markers = detect_chapter_patterns(text)
     
     if not chapter_markers:
@@ -60,15 +61,15 @@ def extract_chapters(text: str) -> List[Chapter]:
     for i, (marker_idx, title) in enumerate(chapter_markers):
         start_idx = marker_idx
         
-        # Determinar fin del capítulo (inicio del siguiente o fin del texto)
+        # Determinar fin del capitulo (inicio del siguiente o fin del texto)
         if i + 1 < len(chapter_markers):
             end_idx = chapter_markers[i + 1][0]
         else:
             end_idx = len(lines)
         
-        # Extraer contenido del capítulo
+        # Extraer contenido del capitulo
         chapter_lines = lines[start_idx:end_idx]
-        # Remover el título del contenido si está duplicado
+        # Remover el titulo del contenido si esta duplicado
         content = '\n'.join(chapter_lines[1:]) if len(chapter_lines) > 1 else '\n'.join(chapter_lines)
         content = content.strip()
         
@@ -84,7 +85,7 @@ def extract_chapters(text: str) -> List[Chapter]:
 
 
 def split_long_chapter(chapter: Chapter, max_words: int = 3500) -> List[Chapter]:
-    """Divide un capítulo largo en partes más pequeñas."""
+    """Divide un capitulo largo en partes mas pequenas."""
     words = chapter.content.split()
     
     if len(words) <= max_words:
@@ -95,7 +96,7 @@ def split_long_chapter(chapter: Chapter, max_words: int = 3500) -> List[Chapter]
     current_word_count = 0
     part_num = 1
     
-    # Dividir por párrafos cuando sea posible
+    # Dividir por parrafos cuando sea posible
     paragraphs = chapter.content.split('\n\n')
     
     for para in paragraphs:
@@ -133,7 +134,7 @@ def split_long_chapter(chapter: Chapter, max_words: int = 3500) -> List[Chapter]
 
 def segment_text(text: str, min_audio_minutes: int = 20, max_audio_minutes: int = 60) -> List[Chapter]:
     """
-    Segmenta el texto en capítulos de duración apropiada.
+    Segmenta el texto en capitulos de duracion apropiada.
     
     Asume ~150 palabras por minuto de audio a velocidad normal.
     Con velocidad 1.15x, son ~173 palabras por minuto.
@@ -142,13 +143,13 @@ def segment_text(text: str, min_audio_minutes: int = 20, max_audio_minutes: int 
     min_words = min_audio_minutes * words_per_minute  # ~3460 palabras
     max_words = max_audio_minutes * words_per_minute  # ~10380 palabras
     
-    # Intentar detectar capítulos existentes
+    # Intentar detectar capitulos existentes
     detected_chapters = extract_chapters(text)
     
     if detected_chapters:
         final_chapters = []
         for chapter in detected_chapters:
-            # Si el capítulo es muy largo, dividirlo
+            # Si el capitulo es muy largo, dividirlo
             if len(chapter.content.split()) > max_words:
                 parts = split_long_chapter(chapter, max_words)
                 final_chapters.extend(parts)
@@ -156,12 +157,12 @@ def segment_text(text: str, min_audio_minutes: int = 20, max_audio_minutes: int 
                 final_chapters.append(chapter)
         return final_chapters
     
-    # Si no hay capítulos detectados, crear segmentación automática
+    # Si no hay capitulos detectados, crear segmentacion automatica
     return create_automatic_segmentation(text, min_words, max_words)
 
 
 def create_automatic_segmentation(text: str, min_words: int, max_words: int) -> List[Chapter]:
-    """Crea segmentación automática cuando no hay capítulos detectados."""
+    """Crea segmentacion automatica cuando no hay capitulos detectados."""
     words = text.split()
     chapters = []
     chapter_num = 1
@@ -169,16 +170,16 @@ def create_automatic_segmentation(text: str, min_words: int, max_words: int) -> 
     current_chunk = []
     current_word_count = 0
     
-    # Dividir por párrafos
+    # Dividir por parrafos
     paragraphs = text.split('\n\n')
     
     for para in paragraphs:
         para_words = para.split()
         para_word_count = len(para_words)
         
-        # Si agregar este párrafo excede el máximo, crear nuevo capítulo
+        # Si agregar este parrafo excede el maximo, crear nuevo capitulo
         if current_word_count + para_word_count > max_words and current_chunk:
-            # Asegurar mínimo de palabras
+            # Asegurar minimo de palabras
             if current_word_count >= min_words:
                 chapter_content = '\n\n'.join(current_chunk)
                 chapters.append(Chapter(
@@ -191,14 +192,14 @@ def create_automatic_segmentation(text: str, min_words: int, max_words: int) -> 
                 current_chunk = [para]
                 current_word_count = para_word_count
             else:
-                # Si no alcanza el mínimo, agregarlo de todas formas
+                # Si no alcanza el minimo, agregarlo de todas formas
                 current_chunk.append(para)
                 current_word_count += para_word_count
         else:
             current_chunk.append(para)
             current_word_count += para_word_count
     
-    # Agregar último capítulo
+    # Agregar ultimo capitulo
     if current_chunk:
         chapter_content = '\n\n'.join(current_chunk)
         chapters.append(Chapter(

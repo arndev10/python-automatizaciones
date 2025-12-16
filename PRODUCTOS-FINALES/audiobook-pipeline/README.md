@@ -1,32 +1,33 @@
-# 📚 Pipeline de Generación de Audiolibros
+# Pipeline de Generacion de Audiolibros
 
-Transforma PDFs en audiolibros profesionales segmentados por capítulos usando Python y tecnologías de síntesis de voz.
+Transforma PDFs en audiolibros profesionales segmentados por capitulos usando Python y tecnologias de sintesis de voz.
 
 [![Python](https://img.shields.io/badge/Python-3.11+-blue.svg)](https://www.python.org/)
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 
-## 📋 Descripción
+## Descripcion
 
-Este proyecto automatiza la conversión de documentos PDF a audiolibros de alta calidad, incluyendo:
-- Extracción inteligente de texto
-- Detección automática de capítulos
-- Adaptación narrativa del contenido
-- Generación de audio con voces naturales
-- Optimización y compresión de archivos de audio
+Este proyecto automatiza la conversion de documentos PDF a audiolibros de alta calidad, incluyendo:
+- Extraccion inteligente de texto
+- Deteccion automatica de capitulos
+- Adaptacion narrativa del contenido
+- Generacion de audio con voces naturales
+- Optimizacion y compresion de archivos de audio
 
-## Características
+## Caracteristicas
 
-- ✅ Extracción automática de texto desde PDFs
-- ✅ Detección inteligente de capítulos (con fallback automático)
-- ✅ Segmentación automática (capítulos largos se dividen en partes)
-- ✅ Resumen moderado para optimizar contenido (15% de reducción)
-- ✅ Conversión a audio con voces naturales (edge-tts)
-- ✅ Compresión de audio optimizada (96 kbps)
-- ✅ Velocidad de lectura ajustable (1.15x)
-- ✅ Eliminación automática de referencias visuales
-- ✅ Conversión de listas a prosa narrativa
+- Extraccion automatica de texto desde PDFs
+- Deteccion inteligente de capitulos (con fallback automatico)
+- Segmentacion automatica (capitulos largos se dividen en partes)
+- Resumen moderado para optimizar contenido (15% de reduccion)
+- Conversion a audio con voces naturales (edge-tts)
+- Compresion de audio optimizada (96 kbps)
+- Velocidad de lectura ajustable (1.15x)
+- Eliminacion automatica de referencias visuales
+- Conversion de listas a prosa narrativa
+- Mantiene tildes y acentos en el audio generado
 
-## Instalación
+## Instalacion
 
 ### Requisitos Previos
 
@@ -35,13 +36,13 @@ Este proyecto automatiza la conversión de documentos PDF a audiolibros de alta 
 
 2. **FFmpeg** (requerido para pydub)
    - **Windows**: 
-     - Opción 1: `winget install ffmpeg`
-     - Opción 2: Descarga desde https://ffmpeg.org/download.html
-     - Asegúrate de agregar FFmpeg al PATH
+     - Opcion 1: `winget install ffmpeg`
+     - Opcion 2: Descarga desde https://ffmpeg.org/download.html
+     - Asegurate de agregar FFmpeg al PATH
    - **Linux**: `sudo apt install ffmpeg` (Ubuntu/Debian)
    - **macOS**: `brew install ffmpeg`
 
-### Instalación del Proyecto
+### Instalacion del Proyecto
 
 1. Clona o descarga este proyecto
 2. Abre una terminal en la carpeta del proyecto
@@ -57,13 +58,27 @@ python -m nltk.downloader punkt stopwords
 
 ## Uso
 
-### Uso Básico
+### Estructura de Carpetas
+
+El proyecto usa dos carpetas principales:
+- **`input/`**: Coloca aqui los archivos PDF que quieres convertir
+- **`output/`**: Aqui se guardan los archivos MP3 generados
+
+### Uso Basico (con carpeta input)
+
+1. Coloca tu archivo PDF en la carpeta `input/`
+2. Ejecuta el script sin especificar ruta:
+```bash
+python audiobook_pipeline.py
+```
+
+Los archivos MP3 se guardaran automaticamente en la carpeta `output/`.
+
+### Uso con Ruta Especifica
 
 ```bash
 python audiobook_pipeline.py ruta/al/archivo.pdf
 ```
-
-Los archivos MP3 se guardarán en la carpeta `output/` por defecto.
 
 ### Especificar Carpeta de Salida
 
@@ -77,20 +92,20 @@ python audiobook_pipeline.py ruta/al/archivo.pdf --output mi_carpeta
 python audiobook_pipeline.py "C:\Libros\Mi Libro.pdf" --output "C:\Audiolibros\Mi Libro"
 ```
 
-## Configuración
+## Configuracion
 
-### Parámetros Actuales
+### Parametros Actuales
 
-- **Duración por MP3**: 20 minutos - 1 hora
-- **Velocidad**: 1.15x (ligeramente rápida)
-- **Voz**: Femenina en español (selección automática)
-- **Bitrate**: 96 kbps (balance calidad/tamaño)
-- **Reducción de contenido**: 15% (resumen moderado)
+- **Duracion por MP3**: 20 minutos - 1 hora
+- **Velocidad**: 1.15x (ligeramente rapida)
+- **Voz**: Femenina en espanol (seleccion automatica)
+- **Bitrate**: 96 kbps (balance calidad/tamano)
+- **Reduccion de contenido**: 15% (resumen moderado)
 
-### Personalización
+### Personalizacion
 
 Para cambiar estos valores, edita los archivos correspondientes:
-- `chapter_detector.py`: Duración de capítulos
+- `chapter_detector.py`: Duracion de capitulos
 - `audio_generator.py`: Velocidad, bitrate, voz
 - `narrative_adapter.py`: Porcentaje de resumen
 
@@ -98,96 +113,98 @@ Para cambiar estos valores, edita los archivos correspondientes:
 
 ```
 output/
-├── 01 - Introducción.mp3
-├── 02 - Capítulo 1 - Parte 1.mp3
-├── 02 - Capítulo 1 - Parte 2.mp3
-├── 03 - Capítulo 2.mp3
+├── 01 - Introduccion.mp3
+├── 02 - Capitulo 1 - Parte 1.mp3
+├── 02 - Capitulo 1 - Parte 2.mp3
+├── 03 - Capitulo 2.mp3
 └── ...
 ```
 
 Los archivos se nombran con:
-- Número de capítulo (con ceros a la izquierda)
-- Título del capítulo
-- Si un capítulo es muy largo, se agrega "Parte X"
+- Numero de capitulo (con ceros a la izquierda)
+- Titulo del capitulo
+- Si un capitulo es muy largo, se agrega "Parte X"
 
 ## Proceso del Pipeline
 
-1. **Extracción**: Lee el PDF y extrae todo el texto
-2. **Limpieza**: Elimina artefactos, normaliza formato
-3. **Detección de Capítulos**: Busca títulos de capítulos o crea segmentación automática
-4. **Segmentación**: Divide capítulos largos en partes de 20-60 min
-5. **Adaptación Narrativa**: 
+1. **Extraccion**: Lee el PDF y extrae todo el texto
+2. **Limpieza**: Elimina artefactos, normaliza formato (mantiene tildes)
+3. **Deteccion de Capitulos**: Busca titulos de capitulos o crea segmentacion automatica
+4. **Segmentacion**: Divide capitulos largos en partes de 20-60 min
+5. **Adaptacion Narrativa**: 
    - Elimina referencias visuales
    - Convierte listas a prosa
    - Aplica resumen moderado (15%)
-6. **Generación de Audio**: Convierte cada capítulo a MP3
-7. **Compresión**: Optimiza tamaño de archivos
+6. **Generacion de Audio**: Convierte cada capitulo a MP3 (con tildes preservadas)
+7. **Compresion**: Optimiza tamano de archivos
 
-## Solución de Problemas
+## Solucion de Problemas
 
-### Error: "No se encontró voz en español"
-- Verifica tu conexión a internet (edge-tts necesita conexión)
+### Error: "No se encontro voz en espanol"
+- Verifica tu conexion a internet (edge-tts necesita conexion)
 - El problema puede ser temporal, intenta de nuevo
 
 ### Error: "FFmpeg no encontrado"
-- Asegúrate de tener FFmpeg instalado y en el PATH
-- Reinicia la terminal después de instalar FFmpeg
+- Asegurate de tener FFmpeg instalado y en el PATH
+- Reinicia la terminal despues de instalar FFmpeg
 
 ### Error: "No se pudo extraer texto del PDF"
-- El PDF puede estar escaneado (solo imágenes)
-- Necesitarías OCR primero (no incluido en este pipeline)
+- El PDF puede estar escaneado (solo imagenes)
+- Necesitarias OCR primero (no incluido en este pipeline)
 
-### Los capítulos no se detectan correctamente
-- El pipeline tiene fallback automático
-- Si los capítulos no están claramente marcados, creará segmentación automática
+### Los capitulos no se detectan correctamente
+- El pipeline tiene fallback automatico
+- Si los capitulos no estan claramente marcados, creara segmentacion automatica
 - Puedes ajustar los patrones en `chapter_detector.py`
 
 ## Notas Importantes
 
-- **Conexión a Internet**: edge-tts requiere conexión para generar audio
-- **Tiempo de Procesamiento**: Depende del tamaño del PDF (1-2 min por capítulo)
+- **Conexion a Internet**: edge-tts requiere conexion para generar audio
+- **Tiempo de Procesamiento**: Depende del tamano del PDF (1-2 min por capitulo)
 - **Calidad de Voz**: edge-tts usa voces de Microsoft Edge (alta calidad)
-- **Tamaño de Archivos**: ~1-2 MB por cada 10 minutos de audio (a 96 kbps)
+- **Tamano de Archivos**: ~1-2 MB por cada 10 minutos de audio (a 96 kbps)
+- **Tildes y Acentos**: Se mantienen en el audio generado para pronunciacion correcta
 
-## 📁 Estructura del Proyecto
+## Estructura del Proyecto
 
 ```
 .
 ├── audiobook_pipeline.py    # Script principal del pipeline
-├── pdf_extractor.py         # Extracción y limpieza de texto PDF
-├── chapter_detector.py      # Detección y segmentación de capítulos
-├── narrative_adapter.py    # Adaptación narrativa del texto
-├── audio_generator.py      # Generación de audio con edge-tts
+├── pdf_extractor.py         # Extraccion y limpieza de texto PDF
+├── chapter_detector.py      # Deteccion y segmentacion de capitulos
+├── narrative_adapter.py    # Adaptacion narrativa del texto
+├── audio_generator.py      # Generacion de audio con edge-tts
 ├── requirements.txt        # Dependencias del proyecto
+├── input/                  # Carpeta para archivos PDF de entrada
+├── output/                 # Carpeta para archivos MP3 generados
 └── README.md              # Este archivo
 ```
 
-## 🔧 Tecnologías Utilizadas
+## Tecnologias Utilizadas
 
-- **pdfplumber**: Extracción de texto de PDFs
-- **edge-tts**: Síntesis de voz de Microsoft Edge
-- **pydub**: Procesamiento y compresión de audio
-- **sumy**: Resumen automático de texto
+- **pdfplumber**: Extraccion de texto de PDFs
+- **edge-tts**: Sintesis de voz de Microsoft Edge
+- **pydub**: Procesamiento y compresion de audio
+- **sumy**: Resumen automatico de texto
 - **nltk**: Procesamiento de lenguaje natural
-- **click**: Interfaz de línea de comandos
+- **click**: Interfaz de linea de comandos
 
-## 📝 Licencia
+## Licencia
 
-Este proyecto es parte de la colección de automatizaciones Python de [arndev10](https://github.com/arndev10/python-automatizaciones).
+Este proyecto es parte de la coleccion de automatizaciones Python de [arndev10](https://github.com/arndev10/python-automatizaciones).
 
-## 🤝 Contribuciones
+## Contribuciones
 
 Las contribuciones son bienvenidas. Por favor, abre un issue o pull request si tienes sugerencias o mejoras.
 
-## 📧 Contacto
+## Contacto
 
-Para más información sobre este proyecto y otros, visita: [python-automatizaciones](https://github.com/arndev10/python-automatizaciones)
+Para mas informacion sobre este proyecto y otros, visita: [python-automatizaciones](https://github.com/arndev10/python-automatizaciones)
 
-## 🚀 Próximas Mejoras
+## Proximas Mejoras
 
-- Integración con APIs de LLM para mejor adaptación narrativa
-- Soporte para múltiples idiomas
-- Interfaz gráfica (GUI)
-- Procesamiento por lotes (múltiples PDFs)
-- Previsualización de audio antes de generar todo
-
+- Integracion con APIs de LLM para mejor adaptacion narrativa
+- Soporte para multiples idiomas
+- Interfaz grafica (GUI)
+- Procesamiento por lotes (multiples PDFs)
+- Previsualizacion de audio antes de generar todo
