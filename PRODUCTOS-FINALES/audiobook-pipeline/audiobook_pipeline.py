@@ -82,7 +82,11 @@ def main(pdf_path: str, output: str):
         if not pdf_files:
             print("❌ No se encontro ningun PDF en la carpeta 'input'")
             print("   Coloca un archivo PDF en la carpeta 'input' o especifica la ruta:")
-            print("   python audiobook_pipeline.py ruta/al/archivo.pdf")
+            import sys
+            if sys.platform == 'win32':
+                print("   py audiobook_pipeline.py ruta\\al\\archivo.pdf")
+            else:
+                print("   python audiobook_pipeline.py ruta/al/archivo.pdf")
             return
         
         if len(pdf_files) > 1:
