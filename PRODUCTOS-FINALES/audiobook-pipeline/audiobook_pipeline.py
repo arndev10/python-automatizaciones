@@ -8,9 +8,10 @@ from pdf_extractor import extract_and_clean_pdf
 from chapter_detector import segment_text
 from narrative_adapter import adapt_for_audiobook
 from audio_generator import generate_chapter_audio
+from audio_generator_gtts import generate_chapter_audio_gtts
 
 
-async def process_audiobook(pdf_path: str, output_dir: str = "output"):
+async def process_audiobook(pdf_path: str, output_dir: str = "output", tts_engine: str = "gtts"):
     """Procesa un PDF completo y genera audiolibro."""
     # Usar carpeta output por defecto si no se especifica
     pdf_path_obj = Path(pdf_path)
@@ -47,13 +48,23 @@ async def process_audiobook(pdf_path: str, output_dir: str = "output"):
         adapted_chapters.append((chapter.title, adapted_content))
     
     print("\n🎙️  Generando archivos de audio...")
+    print(f"   Usando motor: {tts_engine.upper()}")
     generated_files = []
+    
+    # Seleccionar funcion de generacion de audio
+    if tts_engine.lower() == 'gtts':
+        generate_func = generate_chapter_audio_gtts
+        is_async = False
+    else:
+        generate_func = generate_chapter_audio
+        is_async = True
     
     for i, (title, content) in enumerate(tqdm(adapted_chapters, desc="Generando audio"), 1):
         try:
-            output_file = await generate_chapter_audio(
-                title, content, output_path_obj, i
-            )
+            if is_async:
+                output_file = await generate_func(title, content, output_path_obj, i)
+            else:
+                output_file = generate_func(title, content, output_path_obj, i)
             generated_files.append(output_file)
             print(f"   ✅ {Path(output_file).name}")
         except Exception as e:
@@ -70,7 +81,9 @@ async def process_audiobook(pdf_path: str, output_dir: str = "output"):
 @click.command()
 @click.argument('pdf_path', type=click.Path(exists=True), required=False)
 @click.option('--output', '-o', default='output', help='Carpeta de salida para los MP3')
-def main(pdf_path: str, output: str):
+@click.option('--tts', default='gtts', type=click.Choice(['gtts', 'edge'], case_sensitive=False), 
+              help='Motor de texto a voz: gtts (Google, recomendado) o edge (Microsoft)')
+def main(pdf_path: str, output: str, tts: str):
     """Genera audiolibro desde un PDF."""
     # Si no se especifica PDF, buscar en carpeta input
     if pdf_path is None:
@@ -102,7 +115,7 @@ def main(pdf_path: str, output: str):
         output = str(output_dir)
     
     try:
-        asyncio.run(process_audiobook(pdf_path, output))
+        asyncio.run(process_audiobook(pdf_path, output, tts))
     except KeyboardInterrupt:
         print("\n\n⚠️  Proceso cancelado por el usuario")
     except Exception as e:
