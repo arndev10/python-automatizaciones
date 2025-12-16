@@ -201,22 +201,32 @@ def segment_text(text: str, min_audio_minutes: int = 20, max_audio_minutes: int 
     # Intentar detectar capitulos existentes
     detected_chapters = extract_chapters(text)
     
+    # DEBUG: Verificar qué se detectó
     if detected_chapters:
+        print(f"   🔍 Detectados {len(detected_chapters)} capítulos iniciales")
+        
         # Filtrar capitulos muy pequeños (menos de 100 palabras) que probablemente son listas
         filtered_chapters = []
         for chapter in detected_chapters:
             word_count = len(chapter.content.split())
             if word_count >= 100:  # Solo incluir capitulos con al menos 100 palabras
                 filtered_chapters.append(chapter)
+            else:
+                print(f"   ⚠️  Ignorando capítulo pequeño: '{chapter.title[:50]}...' ({word_count} palabras)")
         
         if not filtered_chapters:
             # Si todos los capitulos son muy pequeños, usar segmentacion automatica
+            print(f"   📝 Todos los capítulos detectados son muy pequeños, usando segmentación automática...")
             return create_automatic_segmentation(text, min_words, max_words)
         
-        # IMPORTANTE: Si solo hay 1 capítulo, verificar su tamaño
+        print(f"   🔍 Después de filtrar: {len(filtered_chapters)} capítulo(s) válido(s)")
+        
+        # IMPORTANTE: Si solo hay 1 capítulo, SIEMPRE verificar y dividir si es necesario
         if len(filtered_chapters) == 1:
             single_chapter = filtered_chapters[0]
             single_chapter_words = len(single_chapter.content.split())
+            
+            print(f"   🔍 Capítulo único detectado: {single_chapter_words} palabras (máximo: {max_words}, mínimo: {min_words})")
             
             # Si el único capítulo es más grande que el máximo, SIEMPRE usar segmentación automática
             if single_chapter_words > max_words:
@@ -228,6 +238,9 @@ def segment_text(text: str, min_audio_minutes: int = 20, max_audio_minutes: int 
                 print(f"   ⚠️  Capítulo único muy pequeño ({single_chapter_words} palabras)")
                 print(f"   📝 Usando segmentación automática para mejor distribución...")
                 return create_automatic_segmentation(text, min_words, max_words)
+            else:
+                # Si está en el rango correcto, mantenerlo pero verificar después
+                print(f"   ✅ Capítulo único en rango válido, manteniendo...")
         
         # Combinar capitulos pequeños hasta alcanzar el minimo
         combined_chapters = combine_small_chapters(filtered_chapters, min_words)
@@ -247,6 +260,7 @@ def segment_text(text: str, min_audio_minutes: int = 20, max_audio_minutes: int 
         return final_chapters
     
     # Si no hay capitulos detectados, crear segmentacion automatica
+    print(f"   📝 No se detectaron capítulos, usando segmentación automática...")
     return create_automatic_segmentation(text, min_words, max_words)
 
 
