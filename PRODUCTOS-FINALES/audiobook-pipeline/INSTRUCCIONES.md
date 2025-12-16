@@ -6,9 +6,22 @@ Este metodo te permite probar los audiolibros en tu navegador con un reproductor
 
 ### Pasos:
 
+**OPCION A: Usar script batch (Mas facil en Windows)**
+
+Haz doble clic en uno de estos archivos:
+- `start_server_py.bat` (recomendado - usa 'py')
+- `start_server_direct.bat` (usa ruta completa de Python)
+- `test_server_py.bat` (servidor de prueba simple)
+
+**OPCION B: Desde terminal**
+
 1. **Inicia el servidor web:**
-```bash
-python run_local.py
+```powershell
+# Usa 'py' en lugar de 'python' (funciona mejor en Windows)
+py run_local.py
+
+# O si 'py' no funciona, usa la ruta completa:
+"C:\Users\Ar\AppData\Local\Programs\Python\Python313\python.exe" run_local.py
 ```
 
 2. **El navegador se abrira automaticamente** en `http://localhost:8000`
@@ -43,8 +56,12 @@ cp ruta/a/tu/archivo.pdf input/
 ```
 
 2. **Ejecuta el pipeline:**
-```bash
-python audiobook_pipeline.py
+```powershell
+# Usa 'py' en lugar de 'python'
+py audiobook_pipeline.py
+
+# O ruta completa:
+"C:\Users\Ar\AppData\Local\Programs\Python\Python313\python.exe" audiobook_pipeline.py
 ```
 
 3. **Los archivos MP3 estaran en la carpeta `output/`**
@@ -60,8 +77,9 @@ python audiobook_pipeline.py
 
 Si prefieres especificar la ruta del PDF directamente:
 
-```bash
-python audiobook_pipeline.py "ruta/completa/al/archivo.pdf"
+```powershell
+# Usa 'py' en lugar de 'python'
+py audiobook_pipeline.py "ruta/completa/al/archivo.pdf"
 ```
 
 ---
