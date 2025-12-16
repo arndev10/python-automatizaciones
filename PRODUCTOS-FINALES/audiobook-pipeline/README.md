@@ -68,6 +68,13 @@ El proyecto usa dos carpetas principales:
 
 1. Coloca tu archivo PDF en la carpeta `input/`
 2. Ejecuta el script sin especificar ruta:
+
+**Windows (PowerShell):**
+```powershell
+py audiobook_pipeline.py
+```
+
+**Linux/Mac:**
 ```bash
 python audiobook_pipeline.py
 ```
@@ -76,20 +83,40 @@ Los archivos MP3 se guardaran automaticamente en la carpeta `output/`.
 
 ### Uso con Ruta Especifica
 
+**Windows:**
+```powershell
+py audiobook_pipeline.py ruta\al\archivo.pdf
+```
+
+**Linux/Mac:**
 ```bash
 python audiobook_pipeline.py ruta/al/archivo.pdf
 ```
 
+**Nota para Windows:** Usa `py` en lugar de `python` en PowerShell. Ver `README_WINDOWS.md` para mas detalles.
+
 ### Especificar Carpeta de Salida
 
+**Windows:**
+```powershell
+py audiobook_pipeline.py ruta\al\archivo.pdf --output mi_carpeta
+```
+
+**Linux/Mac:**
 ```bash
 python audiobook_pipeline.py ruta/al/archivo.pdf --output mi_carpeta
 ```
 
 ### Ejemplo Completo
 
+**Windows:**
+```powershell
+py audiobook_pipeline.py "C:\Libros\Mi Libro.pdf" --output "C:\Audiolibros\Mi Libro"
+```
+
+**Linux/Mac:**
 ```bash
-python audiobook_pipeline.py "C:\Libros\Mi Libro.pdf" --output "C:\Audiolibros\Mi Libro"
+python audiobook_pipeline.py "/ruta/al/libro.pdf" --output "/ruta/salida"
 ```
 
 ## Configuracion
