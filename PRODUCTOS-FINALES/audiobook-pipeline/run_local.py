@@ -136,6 +136,19 @@ def create_index_html():
     return index_path
 
 
+def find_available_port(start_port=8000, max_attempts=10):
+    """Encuentra un puerto disponible."""
+    import socket
+    for port in range(start_port, start_port + max_attempts):
+        try:
+            with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+                s.bind(('', port))
+                return port
+        except OSError:
+            continue
+    return None
+
+
 def main():
     """Inicia el servidor web local."""
     # Crear carpeta output si no existe
@@ -146,34 +159,62 @@ def main():
     print(f"✅ Archivo HTML creado: {index_path.absolute()}")
     
     # Cambiar al directorio del script
-    os.chdir(Path(__file__).parent)
+    script_dir = Path(__file__).parent
+    os.chdir(script_dir)
+    
+    # Buscar puerto disponible
+    port = find_available_port(PORT)
+    if port is None:
+        print("❌ No se pudo encontrar un puerto disponible")
+        return
+    
+    if port != PORT:
+        print(f"⚠️  Puerto {PORT} ocupado, usando puerto {port}")
     
     # Iniciar servidor
-    with socketserver.TCPServer(("", PORT), CustomHTTPRequestHandler) as httpd:
-        url = f"http://localhost:{PORT}/index.html"
-        print(f"\n🚀 Servidor iniciado en: {url}")
-        print(f"📁 Sirviendo archivos desde: {Path.cwd()}")
-        print(f"📂 Archivos MP3 en: {OUTPUT_DIR.absolute()}")
-        print("\n💡 Instrucciones:")
-        print("   1. Coloca un PDF en la carpeta 'input/'")
-        print("   2. Ejecuta: python audiobook_pipeline.py")
-        print("   3. Los MP3 apareceran automaticamente en el navegador")
-        print("\n⏹️  Presiona Ctrl+C para detener el servidor\n")
-        
-        # Abrir navegador automaticamente
-        try:
-            webbrowser.open(url)
-        except:
-            print(f"⚠️  No se pudo abrir el navegador automaticamente.")
-            print(f"   Abre manualmente: {url}")
-        
-        try:
-            httpd.serve_forever()
-        except KeyboardInterrupt:
-            print("\n\n🛑 Servidor detenido")
-            if index_path.exists():
-                index_path.unlink()
-                print("✅ Archivo temporal eliminado")
+    try:
+        with socketserver.TCPServer(("", port), CustomHTTPRequestHandler) as httpd:
+            url = f"http://localhost:{port}/index.html"
+            print(f"\n🚀 Servidor iniciado en: {url}")
+            print(f"📁 Sirviendo archivos desde: {Path.cwd()}")
+            print(f"📂 Archivos MP3 en: {OUTPUT_DIR.absolute()}")
+            print("\n💡 Instrucciones:")
+            print("   1. Coloca un PDF en la carpeta 'input/'")
+            print("   2. Ejecuta: python audiobook_pipeline.py")
+            print("   3. Los MP3 apareceran automaticamente en el navegador")
+            print(f"\n🌐 Abre en tu navegador: {url}")
+            print("\n⏹️  Presiona Ctrl+C para detener el servidor\n")
+            
+            # Abrir navegador automaticamente
+            try:
+                import time
+                import threading
+                
+                def open_browser():
+                    time.sleep(2)  # Esperar 2 segundos para que el servidor esté listo
+                    try:
+                        webbrowser.open(url)
+                        print("✅ Navegador abierto automaticamente")
+                    except Exception as e:
+                        print(f"⚠️  No se pudo abrir el navegador: {e}")
+                
+                # Abrir navegador en un hilo separado
+                browser_thread = threading.Thread(target=open_browser, daemon=True)
+                browser_thread.start()
+            except Exception as e:
+                print(f"⚠️  No se pudo iniciar el navegador automaticamente: {e}")
+                print(f"   Abre manualmente: {url}")
+            
+            try:
+                httpd.serve_forever()
+            except KeyboardInterrupt:
+                print("\n\n🛑 Servidor detenido")
+                if index_path.exists():
+                    index_path.unlink()
+                    print("✅ Archivo temporal eliminado")
+    except OSError as e:
+        print(f"❌ Error al iniciar el servidor: {e}")
+        print("   Verifica que el puerto no este en uso o que tengas permisos suficientes")
 
 
 if __name__ == "__main__":
