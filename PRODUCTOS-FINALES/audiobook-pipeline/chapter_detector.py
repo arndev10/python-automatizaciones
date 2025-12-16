@@ -16,6 +16,7 @@ class Chapter:
 def detect_chapter_patterns(text: str) -> List[Tuple[int, str]]:
     """Detecta patrones comunes de titulos de capitulo."""
     # NOTA: Los patrones regex mantienen tildes para detectar correctamente
+    # SOLO detectar patrones muy específicos para evitar falsos positivos
     patterns = [
         # "CAPITULO 1" o "CAPITULO 1" (acepta con y sin tilde) - Prioridad alta
         r'(?i)^(?:cap[íi]tulo|cap\.?)\s*(\d+[a-z]?)[\.\s:]+(.+?)$',
@@ -23,8 +24,6 @@ def detect_chapter_patterns(text: str) -> List[Tuple[int, str]]:
         r'(?i)^cap[íi]tulo\s+(\d+[a-z]?)[\.\s:]+(.+?)$',
         # "PARTE I" o "PARTE 1" - Prioridad alta
         r'(?i)^(?:parte|part)\s+([IVX\d]+)[\.\s:]+(.+?)$',
-        # "I. Titulo" (numeros romanos) - Solo si tiene suficiente contenido
-        r'^([IVX]+)[\.\)]\s+(.+?)$',
     ]
     
     lines = text.split('\n')
@@ -33,23 +32,28 @@ def detect_chapter_patterns(text: str) -> List[Tuple[int, str]]:
     for i, line in enumerate(lines):
         line_stripped = line.strip()
         # Filtrar lineas muy cortas o muy largas
-        if len(line_stripped) < 10 or len(line_stripped) > 200:
+        if len(line_stripped) < 15 or len(line_stripped) > 200:
             continue
         
         # Verificar que la linea siguiente tenga contenido sustancial
         # para evitar detectar elementos de lista como capitulos
         if i + 1 < len(lines):
             next_line = lines[i + 1].strip()
-            if len(next_line) < 50:  # Si la siguiente linea es muy corta, probablemente es una lista
+            if len(next_line) < 100:  # Aumentado a 100 para ser más estricto
                 continue
         
         for pattern in patterns:
             match = re.match(pattern, line_stripped)
             if match:
                 # Verificar que tenga texto significativo (no solo numeros)
-                if any(c.isalpha() for c in line_stripped) and len(line_stripped) > 10:
+                if any(c.isalpha() for c in line_stripped) and len(line_stripped) > 15:
                     chapter_markers.append((i, line_stripped))
                     break
+    
+    # Si detecta muy pocos capítulos (menos de 3), probablemente son falsos positivos
+    # En ese caso, retornar lista vacía para forzar segmentación automática
+    if len(chapter_markers) < 3:
+        return []
     
     return chapter_markers
 
@@ -209,14 +213,20 @@ def segment_text(text: str, min_audio_minutes: int = 20, max_audio_minutes: int 
             # Si todos los capitulos son muy pequeños, usar segmentacion automatica
             return create_automatic_segmentation(text, min_words, max_words)
         
-        # IMPORTANTE: Si solo hay 1 capítulo y es muy grande, forzar segmentacion automatica
-        # Esto asegura que siempre se divida en capitulos de tamaño adecuado
+        # IMPORTANTE: Si solo hay 1 capítulo, verificar su tamaño
         if len(filtered_chapters) == 1:
             single_chapter = filtered_chapters[0]
             single_chapter_words = len(single_chapter.content.split())
-            # Si el unico capitulo es mas grande que el maximo, usar segmentacion automatica
-            if single_chapter_words > max_words * 1.5:  # Si es mas de 1.5x el maximo
-                print(f"   ⚠️  Capítulo único muy grande ({single_chapter_words} palabras), dividiendo automáticamente...")
+            
+            # Si el único capítulo es más grande que el máximo, SIEMPRE usar segmentación automática
+            if single_chapter_words > max_words:
+                print(f"   ⚠️  Capítulo único muy grande ({single_chapter_words} palabras, máximo permitido: {max_words})")
+                print(f"   📝 Dividiendo automáticamente en capítulos de {min_words}-{max_words} palabras...")
+                return create_automatic_segmentation(text, min_words, max_words)
+            # Si es pequeño, también usar segmentación automática para mejor distribución
+            elif single_chapter_words < min_words:
+                print(f"   ⚠️  Capítulo único muy pequeño ({single_chapter_words} palabras)")
+                print(f"   📝 Usando segmentación automática para mejor distribución...")
                 return create_automatic_segmentation(text, min_words, max_words)
         
         # Combinar capitulos pequeños hasta alcanzar el minimo
@@ -228,11 +238,9 @@ def segment_text(text: str, min_audio_minutes: int = 20, max_audio_minutes: int 
             chapter_words = len(chapter.content.split())
             if chapter_words > max_words:
                 # Forzar division si excede el maximo
+                print(f"   📝 Dividiendo '{chapter.title[:50]}...' ({chapter_words} palabras) en partes...")
                 parts = split_long_chapter(chapter, max_words)
                 final_chapters.extend(parts)
-            elif chapter_words < min_words and len(combined_chapters) == 1:
-                # Si solo hay 1 capítulo y es pequeño, usar segmentacion automatica para mejor distribucion
-                return create_automatic_segmentation(text, min_words, max_words)
             else:
                 final_chapters.append(chapter)
         
