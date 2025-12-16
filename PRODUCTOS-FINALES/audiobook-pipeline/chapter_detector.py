@@ -90,7 +90,7 @@ def extract_chapters(text: str) -> List[Chapter]:
     return chapters
 
 
-def split_long_chapter(chapter: Chapter, max_words: int = 3500) -> List[Chapter]:
+def split_long_chapter(chapter: Chapter, max_words: int = 10380) -> List[Chapter]:
     """Divide un capitulo largo en partes mas pequenas."""
     words = chapter.content.split()
     
@@ -209,16 +209,30 @@ def segment_text(text: str, min_audio_minutes: int = 20, max_audio_minutes: int 
             # Si todos los capitulos son muy pequeños, usar segmentacion automatica
             return create_automatic_segmentation(text, min_words, max_words)
         
+        # IMPORTANTE: Si solo hay 1 capítulo y es muy grande, forzar segmentacion automatica
+        # Esto asegura que siempre se divida en capitulos de tamaño adecuado
+        if len(filtered_chapters) == 1:
+            single_chapter = filtered_chapters[0]
+            single_chapter_words = len(single_chapter.content.split())
+            # Si el unico capitulo es mas grande que el maximo, usar segmentacion automatica
+            if single_chapter_words > max_words * 1.5:  # Si es mas de 1.5x el maximo
+                print(f"   ⚠️  Capítulo único muy grande ({single_chapter_words} palabras), dividiendo automáticamente...")
+                return create_automatic_segmentation(text, min_words, max_words)
+        
         # Combinar capitulos pequeños hasta alcanzar el minimo
         combined_chapters = combine_small_chapters(filtered_chapters, min_words)
         
-        # Dividir capitulos muy largos
+        # Dividir capitulos muy largos (SIEMPRE dividir si excede el maximo)
         final_chapters = []
         for chapter in combined_chapters:
             chapter_words = len(chapter.content.split())
             if chapter_words > max_words:
+                # Forzar division si excede el maximo
                 parts = split_long_chapter(chapter, max_words)
                 final_chapters.extend(parts)
+            elif chapter_words < min_words and len(combined_chapters) == 1:
+                # Si solo hay 1 capítulo y es pequeño, usar segmentacion automatica para mejor distribucion
+                return create_automatic_segmentation(text, min_words, max_words)
             else:
                 final_chapters.append(chapter)
         

@@ -75,10 +75,15 @@ def text_to_speech_gtts(text: str, output_path: str, lang: str = 'es', slow: boo
     try:
         # Generar audio para cada chunk
         audio_segments = []
+        total_chunks = len([c for c in text_chunks if c.strip()])
         
         for i, chunk in enumerate(text_chunks):
             if not chunk.strip():
                 continue
+            
+            # Mostrar progreso si hay muchos chunks
+            if total_chunks > 5:
+                print(f"      Procesando chunk {i+1}/{total_chunks}...", end='\r')
             
             temp_file = tempfile.NamedTemporaryFile(delete=False, suffix='.mp3')
             temp_path = temp_file.name
@@ -109,6 +114,9 @@ def text_to_speech_gtts(text: str, output_path: str, lang: str = 'es', slow: boo
             # Pequena pausa entre chunks para evitar rate limiting
             if i < len(text_chunks) - 1:
                 time.sleep(0.5)
+        
+        if total_chunks > 5:
+            print()  # Nueva linea despues del progreso
         
         # Combinar todos los segmentos de audio
         if audio_segments:
