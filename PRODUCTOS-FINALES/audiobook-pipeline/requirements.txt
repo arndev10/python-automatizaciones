@@ -1,0 +1,9 @@
+pdfplumber==0.10.3
+edge-tts==6.1.9
+pydub==0.25.1
+sumy==0.11.0
+nltk==3.8.1
+unidecode==1.3.7
+click==8.1.7
+tqdm==4.66.1
+
