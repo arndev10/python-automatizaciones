@@ -17,16 +17,14 @@ def detect_chapter_patterns(text: str) -> List[Tuple[int, str]]:
     """Detecta patrones comunes de titulos de capitulo."""
     # NOTA: Los patrones regex mantienen tildes para detectar correctamente
     patterns = [
-        # "CAPITULO 1" o "CAPITULO 1" (acepta con y sin tilde)
+        # "CAPITULO 1" o "CAPITULO 1" (acepta con y sin tilde) - Prioridad alta
         r'(?i)^(?:cap[íi]tulo|cap\.?)\s*(\d+[a-z]?)[\.\s:]+(.+?)$',
-        # "Capitulo 1: Titulo" (acepta con y sin tilde)
+        # "Capitulo 1: Titulo" (acepta con y sin tilde) - Prioridad alta
         r'(?i)^cap[íi]tulo\s+(\d+[a-z]?)[\.\s:]+(.+?)$',
-        # "1. Titulo" (al inicio de linea, con numero seguido de punto)
-        r'^(\d+[a-z]?)[\.\)]\s+(.+?)$',
-        # "I. Titulo" (numeros romanos)
-        r'^([IVX]+)[\.\)]\s+(.+?)$',
-        # "PARTE I" o "PARTE 1"
+        # "PARTE I" o "PARTE 1" - Prioridad alta
         r'(?i)^(?:parte|part)\s+([IVX\d]+)[\.\s:]+(.+?)$',
+        # "I. Titulo" (numeros romanos) - Solo si tiene suficiente contenido
+        r'^([IVX]+)[\.\)]\s+(.+?)$',
     ]
     
     lines = text.split('\n')
@@ -34,14 +32,22 @@ def detect_chapter_patterns(text: str) -> List[Tuple[int, str]]:
     
     for i, line in enumerate(lines):
         line_stripped = line.strip()
-        if len(line_stripped) < 3 or len(line_stripped) > 200:
+        # Filtrar lineas muy cortas o muy largas
+        if len(line_stripped) < 10 or len(line_stripped) > 200:
             continue
-            
+        
+        # Verificar que la linea siguiente tenga contenido sustancial
+        # para evitar detectar elementos de lista como capitulos
+        if i + 1 < len(lines):
+            next_line = lines[i + 1].strip()
+            if len(next_line) < 50:  # Si la siguiente linea es muy corta, probablemente es una lista
+                continue
+        
         for pattern in patterns:
             match = re.match(pattern, line_stripped)
             if match:
-                # Verificar que no sea solo un numero suelto
-                if len(line_stripped) > 10 or any(c.isalpha() for c in line_stripped):
+                # Verificar que tenga texto significativo (no solo numeros)
+                if any(c.isalpha() for c in line_stripped) and len(line_stripped) > 10:
                     chapter_markers.append((i, line_stripped))
                     break
     
@@ -132,6 +138,51 @@ def split_long_chapter(chapter: Chapter, max_words: int = 3500) -> List[Chapter]
     return parts
 
 
+def combine_small_chapters(chapters: List[Chapter], min_words: int) -> List[Chapter]:
+    """Combina capitulos pequeños hasta alcanzar el minimo de palabras."""
+    if not chapters:
+        return []
+    
+    combined = []
+    current_chapter = None
+    current_words = 0
+    
+    for chapter in chapters:
+        chapter_words = len(chapter.content.split())
+        
+        if current_chapter is None:
+            # Iniciar nuevo capitulo combinado
+            current_chapter = chapter
+            current_words = chapter_words
+        elif current_words + chapter_words < min_words:
+            # Combinar con el capitulo actual
+            # Usar el titulo del primero y combinar contenido
+            combined_title = current_chapter.title
+            if chapter.title != current_chapter.title:
+                combined_title = f"{current_chapter.title} y {chapter.title}"
+            
+            combined_content = current_chapter.content + "\n\n" + chapter.content
+            current_chapter = Chapter(
+                title=combined_title,
+                content=combined_content,
+                start_index=current_chapter.start_index,
+                end_index=chapter.end_index
+            )
+            current_words += chapter_words
+        else:
+            # El capitulo actual ya tiene suficientes palabras, guardarlo
+            combined.append(current_chapter)
+            # Iniciar nuevo capitulo
+            current_chapter = chapter
+            current_words = chapter_words
+    
+    # Agregar el ultimo capitulo
+    if current_chapter:
+        combined.append(current_chapter)
+    
+    return combined
+
+
 def segment_text(text: str, min_audio_minutes: int = 20, max_audio_minutes: int = 60) -> List[Chapter]:
     """
     Segmenta el texto en capitulos de duracion apropiada.
@@ -147,14 +198,30 @@ def segment_text(text: str, min_audio_minutes: int = 20, max_audio_minutes: int 
     detected_chapters = extract_chapters(text)
     
     if detected_chapters:
-        final_chapters = []
+        # Filtrar capitulos muy pequeños (menos de 100 palabras) que probablemente son listas
+        filtered_chapters = []
         for chapter in detected_chapters:
-            # Si el capitulo es muy largo, dividirlo
-            if len(chapter.content.split()) > max_words:
+            word_count = len(chapter.content.split())
+            if word_count >= 100:  # Solo incluir capitulos con al menos 100 palabras
+                filtered_chapters.append(chapter)
+        
+        if not filtered_chapters:
+            # Si todos los capitulos son muy pequeños, usar segmentacion automatica
+            return create_automatic_segmentation(text, min_words, max_words)
+        
+        # Combinar capitulos pequeños hasta alcanzar el minimo
+        combined_chapters = combine_small_chapters(filtered_chapters, min_words)
+        
+        # Dividir capitulos muy largos
+        final_chapters = []
+        for chapter in combined_chapters:
+            chapter_words = len(chapter.content.split())
+            if chapter_words > max_words:
                 parts = split_long_chapter(chapter, max_words)
                 final_chapters.extend(parts)
             else:
                 final_chapters.append(chapter)
+        
         return final_chapters
     
     # Si no hay capitulos detectados, crear segmentacion automatica
