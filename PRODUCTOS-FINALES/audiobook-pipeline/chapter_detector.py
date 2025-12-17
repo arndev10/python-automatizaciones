@@ -217,53 +217,72 @@ def segment_text_by_minutes(text: str, pdf_title: str, minutes_per_chapter: int 
     print(f"   📊 Total: {total_words} palabras (~{total_minutes:.1f} minutos)")
     print(f"   📚 Dividiendo en {num_parts} parte(s) de ~{minutes_per_chapter} minutos cada una")
     
-    # Dividir texto directamente por palabras (enfoque mas simple y confiable)
+    # Dividir texto directamente por palabras (enfoque simple y confiable)
     words_list = text.split()
-    words_per_part_actual = len(words_list) // num_parts
+    total_words = len(words_list)
+    words_per_part = total_words // num_parts
     
     chapters = []
     
+    # Dividir por palabras y reconstruir texto
     for i in range(num_parts):
-        start_idx = i * words_per_part_actual
+        start_word_idx = i * words_per_part
+        
         if i == num_parts - 1:
             # Ultima parte: tomar todo lo que queda
-            part_words = words_list[start_idx:]
+            end_word_idx = total_words
         else:
-            end_idx = start_idx + words_per_part_actual
-            part_words = words_list[start_idx:end_idx]
+            end_word_idx = (i + 1) * words_per_part
         
-        # Reconstruir texto manteniendo espacios
-        # Buscar el inicio y fin en el texto original para mantener formato
-        if part_words:
-            # Encontrar el inicio de la primera palabra en el texto original
-            first_word = part_words[0]
-            last_word = part_words[-1]
-            
-            # Buscar posiciones en el texto original
-            text_lower = text.lower()
-            first_word_lower = first_word.lower()
-            last_word_lower = last_word.lower()
-            
-            # Encontrar primera ocurrencia de la primera palabra
-            start_pos = text_lower.find(first_word_lower)
-            if start_pos == -1:
-                start_pos = 0
-            
-            # Encontrar ultima ocurrencia de la ultima palabra
-            last_pos = text_lower.rfind(last_word_lower)
-            if last_pos == -1:
-                last_pos = len(text)
-            else:
-                # Incluir la palabra completa
-                last_pos += len(last_word)
-            
-            part_text = text[start_pos:last_pos].strip()
+        # Obtener palabras de esta parte
+        part_words = words_list[start_word_idx:end_word_idx]
+        
+        if not part_words:
+            continue
+        
+        # Reconstruir texto: unir palabras con espacios
+        part_text = ' '.join(part_words)
+        
+        # Intentar mantener formato: buscar puntos de corte naturales
+        # Buscar el inicio de la primera palabra en el texto original
+        first_word = part_words[0]
+        last_word = part_words[-1]
+        
+        # Encontrar posiciones en el texto original
+        # Buscar desde una posicion aproximada
+        approx_start = (start_word_idx / total_words) * len(text)
+        approx_start = max(0, int(approx_start - 1000))  # Buscar 1000 caracteres antes
+        
+        # Buscar primera palabra desde posicion aproximada
+        search_text = text[approx_start:]
+        first_word_pos = search_text.find(first_word)
+        if first_word_pos != -1:
+            actual_start = approx_start + first_word_pos
         else:
-            part_text = ""
+            # Fallback: buscar desde el inicio
+            actual_start = text.find(first_word)
+            if actual_start == -1:
+                actual_start = 0
+        
+        # Buscar ultima palabra
+        approx_end = min(len(text), actual_start + len(part_text) + 2000)
+        search_text_end = text[actual_start:approx_end]
+        last_word_pos = search_text_end.rfind(last_word)
+        if last_word_pos != -1:
+            actual_end = actual_start + last_word_pos + len(last_word)
+        else:
+            actual_end = min(len(text), actual_start + len(part_text))
+        
+        # Extraer texto de esta parte
+        part_text_final = text[actual_start:actual_end].strip()
+        
+        # Si el texto es muy diferente en tamaño, usar el texto reconstruido
+        if abs(len(part_text_final.split()) - len(part_words)) > len(part_words) * 0.2:
+            part_text_final = part_text
         
         chapters.append(Chapter(
             title=f"{base_title} - Parte {i + 1}",
-            content=part_text,
+            content=part_text_final,
             start_index=0,
             end_index=0
         ))
