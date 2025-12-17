@@ -189,10 +189,12 @@ def combine_small_chapters(chapters: List[Chapter], min_words: int) -> List[Chap
 
 def segment_text_by_minutes(text: str, pdf_title: str, minutes_per_chapter: int = 45) -> List[Chapter]:
     """
-    Segmenta el texto dividiendo por minutos fijos (enfoque MVP simple).
+    Segmenta el texto dividiendo por minutos consecutivos (enfoque MVP simple).
     
-    Calcula el total de minutos y divide en partes de tamaño fijo.
-    Nombres: primeras 5 palabras del PDF + "Parte X"
+    Parte 1: min 0 hasta min 45
+    Parte 2: min 45 hasta min 90
+    Parte 3: min 90 hasta min 135
+    Y asi sucesivamente hasta terminar el PDF.
     
     Args:
         text: Texto completo a segmentar
@@ -200,84 +202,52 @@ def segment_text_by_minutes(text: str, pdf_title: str, minutes_per_chapter: int 
         minutes_per_chapter: Minutos por parte (default: 45)
     
     Returns:
-        Lista de capitulos de aproximadamente minutes_per_chapter minutos cada uno
+        Lista de capitulos de exactamente minutes_per_chapter minutos cada uno
     """
     words_per_minute = 173  # Con velocidad 1.15x
     words_per_part = minutes_per_chapter * words_per_minute  # ~7785 palabras por parte de 45 min
     
     # Calcular total de palabras y minutos
-    total_words = len(text.split())
+    words_list = text.split()
+    total_words = len(words_list)
     total_minutes = total_words / words_per_minute
-    num_parts = max(1, int(total_minutes / minutes_per_chapter))
+    num_parts = max(1, int(total_minutes / minutes_per_chapter) + (1 if total_minutes % minutes_per_chapter > 0 else 0))
     
     # Obtener primeras 5 palabras del titulo del PDF
     title_words = pdf_title.split()[:5]
     base_title = ' '.join(title_words)
     
     print(f"   📊 Total: {total_words} palabras (~{total_minutes:.1f} minutos)")
-    print(f"   📚 Dividiendo en {num_parts} parte(s) de ~{minutes_per_chapter} minutos cada una")
-    
-    # Dividir texto directamente por palabras (enfoque simple y confiable)
-    words_list = text.split()
-    total_words = len(words_list)
-    words_per_part = total_words // num_parts
+    print(f"   📚 Dividiendo en {num_parts} parte(s) de {minutes_per_chapter} minutos cada una")
+    print(f"   📝 Parte 1: min 0-{minutes_per_chapter}, Parte 2: min {minutes_per_chapter}-{minutes_per_chapter*2}, etc.")
     
     chapters = []
     
-    # Encontrar posiciones de palabras en el texto original para cortes precisos
-    # Esto asegura que cada parte empiece donde termina la anterior
-    word_positions = []
-    current_pos = 0
-    
-    # Encontrar la posicion de cada palabra en el texto original
-    for word in words_list:
-        # Buscar la palabra desde la posicion actual
-        word_pos = text.find(word, current_pos)
-        if word_pos != -1:
-            word_positions.append((word_pos, word_pos + len(word)))
-            current_pos = word_pos + len(word)
-        else:
-            # Si no se encuentra, usar posicion aproximada
-            word_positions.append((current_pos, current_pos + len(word)))
-            current_pos += len(word) + 1
-    
-    # Dividir por palabras y extraer texto original
+    # Dividir por palabras consecutivas
+    # Cada parte tiene exactamente words_per_part palabras (excepto la ultima)
     for i in range(num_parts):
+        # Calcular rango de palabras para esta parte
         start_word_idx = i * words_per_part
+        end_word_idx = min((i + 1) * words_per_part, total_words)
         
-        if i == num_parts - 1:
-            # Ultima parte: tomar todo lo que queda
-            end_word_idx = total_words
-        else:
-            end_word_idx = (i + 1) * words_per_part
+        # Obtener palabras de esta parte
+        part_words = words_list[start_word_idx:end_word_idx]
         
-        if start_word_idx >= len(word_positions) or end_word_idx > len(word_positions):
+        if not part_words:
             continue
         
-        # Obtener posiciones de inicio y fin en el texto original
-        start_char_pos = word_positions[start_word_idx][0]
+        # Reconstruir texto: unir palabras con espacios
+        part_text = ' '.join(part_words)
         
-        if end_word_idx < len(word_positions):
-            # Fin de la ultima palabra de esta parte
-            end_char_pos = word_positions[end_word_idx - 1][1]
-        else:
-            # Si es la ultima parte, tomar hasta el final
-            end_char_pos = len(text)
-        
-        # Extraer texto de esta parte del texto original
-        part_text = text[start_char_pos:end_char_pos].strip()
-        
-        # Verificar que tenga contenido
-        if not part_text or len(part_text.split()) < 100:
-            # Fallback: usar palabras directamente
-            part_words = words_list[start_word_idx:end_word_idx]
-            part_text = ' '.join(part_words)
+        # Calcular minutos de esta parte
+        part_minutes_start = (i * minutes_per_chapter)
+        part_minutes_end = min((i + 1) * minutes_per_chapter, total_minutes)
         
         chapters.append(Chapter(
             title=f"{base_title} - Parte {i + 1}",
             content=part_text,
-            start_index=start_char_pos,
-            end_index=end_char_pos
+            start_index=start_word_idx,
+            end_index=end_word_idx
         ))
     
     return chapters
