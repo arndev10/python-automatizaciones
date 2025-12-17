@@ -224,7 +224,24 @@ def segment_text_by_minutes(text: str, pdf_title: str, minutes_per_chapter: int 
     
     chapters = []
     
-    # Dividir por palabras y reconstruir texto
+    # Encontrar posiciones de palabras en el texto original para cortes precisos
+    # Esto asegura que cada parte empiece donde termina la anterior
+    word_positions = []
+    current_pos = 0
+    
+    # Encontrar la posicion de cada palabra en el texto original
+    for word in words_list:
+        # Buscar la palabra desde la posicion actual
+        word_pos = text.find(word, current_pos)
+        if word_pos != -1:
+            word_positions.append((word_pos, word_pos + len(word)))
+            current_pos = word_pos + len(word)
+        else:
+            # Si no se encuentra, usar posicion aproximada
+            word_positions.append((current_pos, current_pos + len(word)))
+            current_pos += len(word) + 1
+    
+    # Dividir por palabras y extraer texto original
     for i in range(num_parts):
         start_word_idx = i * words_per_part
         
@@ -234,21 +251,33 @@ def segment_text_by_minutes(text: str, pdf_title: str, minutes_per_chapter: int 
         else:
             end_word_idx = (i + 1) * words_per_part
         
-        # Obtener palabras de esta parte
-        part_words = words_list[start_word_idx:end_word_idx]
-        
-        if not part_words:
+        if start_word_idx >= len(word_positions) or end_word_idx > len(word_positions):
             continue
         
-        # Reconstruir texto: unir palabras con espacios
-        # Esto mantiene el contenido exacto y el tamaño correcto
-        part_text = ' '.join(part_words)
+        # Obtener posiciones de inicio y fin en el texto original
+        start_char_pos = word_positions[start_word_idx][0]
+        
+        if end_word_idx < len(word_positions):
+            # Fin de la ultima palabra de esta parte
+            end_char_pos = word_positions[end_word_idx - 1][1]
+        else:
+            # Si es la ultima parte, tomar hasta el final
+            end_char_pos = len(text)
+        
+        # Extraer texto de esta parte del texto original
+        part_text = text[start_char_pos:end_char_pos].strip()
+        
+        # Verificar que tenga contenido
+        if not part_text or len(part_text.split()) < 100:
+            # Fallback: usar palabras directamente
+            part_words = words_list[start_word_idx:end_word_idx]
+            part_text = ' '.join(part_words)
         
         chapters.append(Chapter(
             title=f"{base_title} - Parte {i + 1}",
             content=part_text,
-            start_index=0,
-            end_index=0
+            start_index=start_char_pos,
+            end_index=end_char_pos
         ))
     
     return chapters
