@@ -187,68 +187,69 @@ def combine_small_chapters(chapters: List[Chapter], min_words: int) -> List[Chap
     return combined
 
 
-def segment_text_by_minutes(text: str, minutes_per_chapter: int = 45) -> List[Chapter]:
+def segment_text_by_minutes(text: str, pdf_title: str, minutes_per_chapter: int = 45) -> List[Chapter]:
     """
     Segmenta el texto dividiendo por minutos fijos (enfoque MVP simple).
     
-    Calcula el total de minutos y divide en capitulos de tamaño fijo.
+    Calcula el total de minutos y divide en partes de tamaño fijo.
+    Nombres: primeras 5 palabras del PDF + "Parte X"
     
     Args:
         text: Texto completo a segmentar
-        minutes_per_chapter: Minutos por capitulo (default: 45)
+        pdf_title: Nombre del archivo PDF (sin extension)
+        minutes_per_chapter: Minutos por parte (default: 45)
     
     Returns:
         Lista de capitulos de aproximadamente minutes_per_chapter minutos cada uno
     """
     words_per_minute = 173  # Con velocidad 1.15x
-    words_per_chapter = minutes_per_chapter * words_per_minute  # ~7785 palabras por capitulo de 45 min
+    words_per_part = minutes_per_chapter * words_per_minute  # ~7785 palabras por parte de 45 min
     
     # Calcular total de palabras y minutos
     total_words = len(text.split())
     total_minutes = total_words / words_per_minute
-    num_chapters = max(1, int(total_minutes / minutes_per_chapter))
+    num_parts = max(1, int(total_minutes / minutes_per_chapter))
+    
+    # Obtener primeras 5 palabras del titulo del PDF
+    title_words = pdf_title.split()[:5]
+    base_title = ' '.join(title_words)
     
     print(f"   📊 Total: {total_words} palabras (~{total_minutes:.1f} minutos)")
-    print(f"   📚 Dividiendo en {num_chapters} capítulo(s) de ~{minutes_per_chapter} minutos cada uno")
+    print(f"   📚 Dividiendo en {num_parts} parte(s) de ~{minutes_per_chapter} minutos cada una")
     
-    # Dividir texto en capitulos
+    # Dividir texto en partes
     chapters = []
-    words_per_chapter_actual = total_words // num_chapters
-    
-    # Dividir por parrafos para mantener coherencia
     paragraphs = text.split('\n\n')
     current_chunk = []
     current_word_count = 0
-    chapter_num = 1
+    part_num = 1
     
     for para in paragraphs:
         para_words = para.split()
         para_word_count = len(para_words)
         
-        # Si agregar este parrafo excede el tamaño objetivo Y ya tenemos contenido
-        if (current_word_count + para_word_count > words_per_chapter_actual and 
-            current_chunk and 
-            chapter_num < num_chapters):
-            # Crear capitulo actual
+        # Si agregar este parrafo excede el tamaño objetivo
+        if current_word_count + para_word_count > words_per_part and current_chunk:
+            # Crear parte actual
             chapter_content = '\n\n'.join(current_chunk)
             chapters.append(Chapter(
-                title=f"Capítulo {chapter_num}",
+                title=f"{base_title} - Parte {part_num}",
                 content=chapter_content,
                 start_index=0,
                 end_index=0
             ))
-            chapter_num += 1
+            part_num += 1
             current_chunk = [para]
             current_word_count = para_word_count
         else:
             current_chunk.append(para)
             current_word_count += para_word_count
     
-    # Agregar ultimo capitulo
+    # Agregar ultima parte
     if current_chunk:
         chapter_content = '\n\n'.join(current_chunk)
         chapters.append(Chapter(
-            title=f"Capítulo {chapter_num}",
+            title=f"{base_title} - Parte {part_num}",
             content=chapter_content,
             start_index=0,
             end_index=0
@@ -257,14 +258,25 @@ def segment_text_by_minutes(text: str, minutes_per_chapter: int = 45) -> List[Ch
     return chapters
 
 
-def segment_text(text: str, min_audio_minutes: int = 20, max_audio_minutes: int = 60) -> List[Chapter]:
+def segment_text(text: str, pdf_title: str = "", min_audio_minutes: int = 20, max_audio_minutes: int = 60) -> List[Chapter]:
     """
-    Segmenta el texto en capitulos usando divisor simple por minutos (MVP).
+    Segmenta el texto en partes usando divisor simple por minutos (MVP).
     
-    Enfoque simple: calcula minutos totales y divide en capitulos de 45 minutos.
+    Enfoque simple: calcula minutos totales y divide en partes de 45 minutos.
+    Nombres: primeras 5 palabras del PDF + "Parte X"
     """
-    # Usar divisor simple de 45 minutos por capitulo
-    return segment_text_by_minutes(text, minutes_per_chapter=45)
+    # Limpiar nombre del PDF (quitar extension y caracteres especiales)
+    if not pdf_title:
+        pdf_title = "Documento"
+    else:
+        # Quitar extension .pdf
+        pdf_title = pdf_title.replace('.pdf', '').replace('.PDF', '')
+        # Limpiar caracteres especiales para nombre
+        import re
+        pdf_title = re.sub(r'[<>:"/\\|?*]', '', pdf_title)
+    
+    # Usar divisor simple de 45 minutos por parte
+    return segment_text_by_minutes(text, pdf_title, minutes_per_chapter=45)
 
 
 def create_automatic_segmentation(text: str, min_words: int, max_words: int) -> List[Chapter]:

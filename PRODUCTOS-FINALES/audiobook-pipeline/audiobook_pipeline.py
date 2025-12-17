@@ -29,8 +29,11 @@ async def process_audiobook(pdf_path: str, output_dir: str = "output", tts_engin
     
     print(f"✅ Texto extraido: {len(text)} caracteres")
     
+    # Obtener nombre del PDF sin extension para los titulos
+    pdf_name = pdf_path_obj.stem  # Nombre sin extension
+    
     print("\n📚 Detectando y segmentando capitulos...")
-    chapters = segment_text(text, min_audio_minutes=20, max_audio_minutes=60)
+    chapters = segment_text(text, pdf_title=pdf_name, min_audio_minutes=20, max_audio_minutes=60)
     
     if not chapters:
         raise ValueError("No se pudieron detectar o crear capitulos.")
