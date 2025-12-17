@@ -187,81 +187,84 @@ def combine_small_chapters(chapters: List[Chapter], min_words: int) -> List[Chap
     return combined
 
 
-def segment_text(text: str, min_audio_minutes: int = 20, max_audio_minutes: int = 60) -> List[Chapter]:
+def segment_text_by_minutes(text: str, minutes_per_chapter: int = 45) -> List[Chapter]:
     """
-    Segmenta el texto en capitulos de duracion apropiada.
+    Segmenta el texto dividiendo por minutos fijos (enfoque MVP simple).
     
-    Asume ~150 palabras por minuto de audio a velocidad normal.
-    Con velocidad 1.15x, son ~173 palabras por minuto.
+    Calcula el total de minutos y divide en capitulos de tamaño fijo.
+    
+    Args:
+        text: Texto completo a segmentar
+        minutes_per_chapter: Minutos por capitulo (default: 45)
+    
+    Returns:
+        Lista de capitulos de aproximadamente minutes_per_chapter minutos cada uno
     """
     words_per_minute = 173  # Con velocidad 1.15x
-    min_words = min_audio_minutes * words_per_minute  # ~3460 palabras
-    max_words = max_audio_minutes * words_per_minute  # ~10380 palabras
+    words_per_chapter = minutes_per_chapter * words_per_minute  # ~7785 palabras por capitulo de 45 min
     
-    # Intentar detectar capitulos existentes
-    detected_chapters = extract_chapters(text)
+    # Calcular total de palabras y minutos
+    total_words = len(text.split())
+    total_minutes = total_words / words_per_minute
+    num_chapters = max(1, int(total_minutes / minutes_per_chapter))
     
-    # DEBUG: Verificar qué se detectó
-    if detected_chapters:
-        print(f"   🔍 Detectados {len(detected_chapters)} capítulos iniciales")
-        
-        # Filtrar capitulos muy pequeños (menos de 100 palabras) que probablemente son listas
-        filtered_chapters = []
-        for chapter in detected_chapters:
-            word_count = len(chapter.content.split())
-            if word_count >= 100:  # Solo incluir capitulos con al menos 100 palabras
-                filtered_chapters.append(chapter)
-            else:
-                print(f"   ⚠️  Ignorando capítulo pequeño: '{chapter.title[:50]}...' ({word_count} palabras)")
-        
-        if not filtered_chapters:
-            # Si todos los capitulos son muy pequeños, usar segmentacion automatica
-            print(f"   📝 Todos los capítulos detectados son muy pequeños, usando segmentación automática...")
-            return create_automatic_segmentation(text, min_words, max_words)
-        
-        print(f"   🔍 Después de filtrar: {len(filtered_chapters)} capítulo(s) válido(s)")
-        
-        # IMPORTANTE: Si solo hay 1 capítulo, SIEMPRE verificar y dividir si es necesario
-        if len(filtered_chapters) == 1:
-            single_chapter = filtered_chapters[0]
-            single_chapter_words = len(single_chapter.content.split())
-            
-            print(f"   🔍 Capítulo único detectado: {single_chapter_words} palabras (máximo: {max_words}, mínimo: {min_words})")
-            
-            # Si el único capítulo es más grande que el máximo, SIEMPRE usar segmentación automática
-            if single_chapter_words > max_words:
-                print(f"   ⚠️  Capítulo único muy grande ({single_chapter_words} palabras, máximo permitido: {max_words})")
-                print(f"   📝 Dividiendo automáticamente en capítulos de {min_words}-{max_words} palabras...")
-                return create_automatic_segmentation(text, min_words, max_words)
-            # Si es pequeño, también usar segmentación automática para mejor distribución
-            elif single_chapter_words < min_words:
-                print(f"   ⚠️  Capítulo único muy pequeño ({single_chapter_words} palabras)")
-                print(f"   📝 Usando segmentación automática para mejor distribución...")
-                return create_automatic_segmentation(text, min_words, max_words)
-            else:
-                # Si está en el rango correcto, mantenerlo pero verificar después
-                print(f"   ✅ Capítulo único en rango válido, manteniendo...")
-        
-        # Combinar capitulos pequeños hasta alcanzar el minimo
-        combined_chapters = combine_small_chapters(filtered_chapters, min_words)
-        
-        # Dividir capitulos muy largos (SIEMPRE dividir si excede el maximo)
-        final_chapters = []
-        for chapter in combined_chapters:
-            chapter_words = len(chapter.content.split())
-            if chapter_words > max_words:
-                # Forzar division si excede el maximo
-                print(f"   📝 Dividiendo '{chapter.title[:50]}...' ({chapter_words} palabras) en partes...")
-                parts = split_long_chapter(chapter, max_words)
-                final_chapters.extend(parts)
-            else:
-                final_chapters.append(chapter)
-        
-        return final_chapters
+    print(f"   📊 Total: {total_words} palabras (~{total_minutes:.1f} minutos)")
+    print(f"   📚 Dividiendo en {num_chapters} capítulo(s) de ~{minutes_per_chapter} minutos cada uno")
     
-    # Si no hay capitulos detectados, crear segmentacion automatica
-    print(f"   📝 No se detectaron capítulos, usando segmentación automática...")
-    return create_automatic_segmentation(text, min_words, max_words)
+    # Dividir texto en capitulos
+    chapters = []
+    words_per_chapter_actual = total_words // num_chapters
+    
+    # Dividir por parrafos para mantener coherencia
+    paragraphs = text.split('\n\n')
+    current_chunk = []
+    current_word_count = 0
+    chapter_num = 1
+    
+    for para in paragraphs:
+        para_words = para.split()
+        para_word_count = len(para_words)
+        
+        # Si agregar este parrafo excede el tamaño objetivo Y ya tenemos contenido
+        if (current_word_count + para_word_count > words_per_chapter_actual and 
+            current_chunk and 
+            chapter_num < num_chapters):
+            # Crear capitulo actual
+            chapter_content = '\n\n'.join(current_chunk)
+            chapters.append(Chapter(
+                title=f"Capítulo {chapter_num}",
+                content=chapter_content,
+                start_index=0,
+                end_index=0
+            ))
+            chapter_num += 1
+            current_chunk = [para]
+            current_word_count = para_word_count
+        else:
+            current_chunk.append(para)
+            current_word_count += para_word_count
+    
+    # Agregar ultimo capitulo
+    if current_chunk:
+        chapter_content = '\n\n'.join(current_chunk)
+        chapters.append(Chapter(
+            title=f"Capítulo {chapter_num}",
+            content=chapter_content,
+            start_index=0,
+            end_index=0
+        ))
+    
+    return chapters
+
+
+def segment_text(text: str, min_audio_minutes: int = 20, max_audio_minutes: int = 60) -> List[Chapter]:
+    """
+    Segmenta el texto en capitulos usando divisor simple por minutos (MVP).
+    
+    Enfoque simple: calcula minutos totales y divide en capitulos de 45 minutos.
+    """
+    # Usar divisor simple de 45 minutos por capitulo
+    return segment_text_by_minutes(text, minutes_per_chapter=45)
 
 
 def create_automatic_segmentation(text: str, min_words: int, max_words: int) -> List[Chapter]:
