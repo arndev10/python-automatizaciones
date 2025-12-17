@@ -42,7 +42,10 @@ async def process_audiobook(pdf_path: str, output_dir: str = "output", tts_engin
     for i, chapter in enumerate(chapters, 1):
         word_count = len(chapter.content.split())
         estimated_minutes = word_count / 173  # palabras por minuto a 1.15x
-        print(f"   {i}. {chapter.title} (~{estimated_minutes:.1f} min, {word_count} palabras)")
+        # Mostrar primeras palabras para verificar que cada parte es diferente
+        first_words = chapter.content.split()[:5]
+        preview = ' '.join(first_words)
+        print(f"   {i}. {chapter.title} (~{estimated_minutes:.1f} min, {word_count} palabras) | Inicia: '{preview}...'")
     
     print("\n✍️  Adaptando texto para audiolibro...")
     adapted_chapters = []

@@ -239,6 +239,10 @@ def segment_text_by_minutes(text: str, pdf_title: str, minutes_per_chapter: int 
         # Reconstruir texto: unir palabras con espacios
         part_text = ' '.join(part_words)
         
+        # Verificacion: mostrar primeras palabras de cada parte para confirmar que son diferentes
+        first_words = ' '.join(part_words[:10])  # Primeras 10 palabras
+        last_words = ' '.join(part_words[-10:])  # Ultimas 10 palabras
+        
         # Calcular minutos de esta parte
         part_minutes_start = (i * minutes_per_chapter)
         part_minutes_end = min((i + 1) * minutes_per_chapter, total_minutes)
@@ -249,6 +253,10 @@ def segment_text_by_minutes(text: str, pdf_title: str, minutes_per_chapter: int 
             start_index=start_word_idx,
             end_index=end_word_idx
         ))
+        
+        # Mostrar preview de cada parte para verificar que son diferentes
+        if i < 3 or i == num_parts - 1:  # Mostrar primeras 3 y ultima
+            print(f"      Parte {i+1}: Inicia con '{first_words[:50]}...' | Termina con '...{last_words[-50:]}'")
     
     return chapters
 
