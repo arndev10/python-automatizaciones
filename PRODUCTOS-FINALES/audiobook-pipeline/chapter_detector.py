@@ -219,16 +219,25 @@ def segment_text_by_minutes(text: str, pdf_title: str, minutes_per_chapter: int 
     
     # Dividir texto en partes
     chapters = []
+    
+    # Dividir por parrafos primero
     paragraphs = text.split('\n\n')
+    if not paragraphs:
+        # Si no hay parrafos, dividir por saltos de linea
+        paragraphs = text.split('\n')
+    
     current_chunk = []
     current_word_count = 0
     part_num = 1
     
     for para in paragraphs:
+        if not para.strip():
+            continue
+            
         para_words = para.split()
         para_word_count = len(para_words)
         
-        # Si agregar este parrafo excede el tamaño objetivo
+        # Si agregar este parrafo excede el tamaño objetivo Y ya tenemos contenido
         if current_word_count + para_word_count > words_per_part and current_chunk:
             # Crear parte actual
             chapter_content = '\n\n'.join(current_chunk)
@@ -254,6 +263,31 @@ def segment_text_by_minutes(text: str, pdf_title: str, minutes_per_chapter: int 
             start_index=0,
             end_index=0
         ))
+    
+    # Verificar que realmente se dividio
+    if len(chapters) == 1:
+        # Si solo hay 1 parte, forzar division manual
+        print(f"   ⚠️  Solo se creo 1 parte, forzando division manual...")
+        single_chapter = chapters[0]
+        chapters = []
+        words_list = single_chapter.content.split()
+        words_per_part_actual = len(words_list) // num_parts
+        
+        for i in range(num_parts):
+            start_idx = i * words_per_part_actual
+            if i == num_parts - 1:
+                # Ultima parte: tomar todo lo que queda
+                part_words = words_list[start_idx:]
+            else:
+                part_words = words_list[start_idx:start_idx + words_per_part_actual]
+            
+            part_text = ' '.join(part_words)
+            chapters.append(Chapter(
+                title=f"{base_title} - Parte {i + 1}",
+                content=part_text,
+                start_index=0,
+                end_index=0
+            ))
     
     return chapters
 
