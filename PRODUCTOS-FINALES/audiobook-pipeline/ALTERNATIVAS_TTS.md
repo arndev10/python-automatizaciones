@@ -95,3 +95,5 @@ O usando el script:
 
 Si gTTS falla, puedes intentar Edge TTS nuevamente, pero gTTS deberia funcionar sin problemas.
 
+
+

@@ -127,3 +127,5 @@ Si ninguno de estos metodos funciona, verifica:
 3. Que el firewall no este bloqueando la conexion
 4. Los mensajes de error en la terminal
 
+
+

@@ -50,3 +50,5 @@ py audiobook_pipeline.py "ruta\al\archivo.pdf"
 - Si `py` no funciona, usa la ruta completa de Python
 - Los scripts `.bat` funcionan haciendo doble clic
 
+
+
