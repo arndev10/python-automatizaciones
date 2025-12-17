@@ -241,48 +241,12 @@ def segment_text_by_minutes(text: str, pdf_title: str, minutes_per_chapter: int 
             continue
         
         # Reconstruir texto: unir palabras con espacios
+        # Esto mantiene el contenido exacto y el tamaño correcto
         part_text = ' '.join(part_words)
-        
-        # Intentar mantener formato: buscar puntos de corte naturales
-        # Buscar el inicio de la primera palabra en el texto original
-        first_word = part_words[0]
-        last_word = part_words[-1]
-        
-        # Encontrar posiciones en el texto original
-        # Buscar desde una posicion aproximada
-        approx_start = (start_word_idx / total_words) * len(text)
-        approx_start = max(0, int(approx_start - 1000))  # Buscar 1000 caracteres antes
-        
-        # Buscar primera palabra desde posicion aproximada
-        search_text = text[approx_start:]
-        first_word_pos = search_text.find(first_word)
-        if first_word_pos != -1:
-            actual_start = approx_start + first_word_pos
-        else:
-            # Fallback: buscar desde el inicio
-            actual_start = text.find(first_word)
-            if actual_start == -1:
-                actual_start = 0
-        
-        # Buscar ultima palabra
-        approx_end = min(len(text), actual_start + len(part_text) + 2000)
-        search_text_end = text[actual_start:approx_end]
-        last_word_pos = search_text_end.rfind(last_word)
-        if last_word_pos != -1:
-            actual_end = actual_start + last_word_pos + len(last_word)
-        else:
-            actual_end = min(len(text), actual_start + len(part_text))
-        
-        # Extraer texto de esta parte
-        part_text_final = text[actual_start:actual_end].strip()
-        
-        # Si el texto es muy diferente en tamaño, usar el texto reconstruido
-        if abs(len(part_text_final.split()) - len(part_words)) > len(part_words) * 0.2:
-            part_text_final = part_text
         
         chapters.append(Chapter(
             title=f"{base_title} - Parte {i + 1}",
-            content=part_text_final,
+            content=part_text,
             start_index=0,
             end_index=0
         ))
