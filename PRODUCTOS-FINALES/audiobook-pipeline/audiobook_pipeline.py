@@ -50,7 +50,8 @@ async def process_audiobook(pdf_path: str, output_dir: str = "output", tts_engin
     print("\n✍️  Adaptando texto para audiolibro...")
     adapted_chapters = []
     for chapter in tqdm(chapters, desc="Adaptando capitulos"):
-        adapted_content = adapt_for_audiobook(chapter.content, apply_summary=True)
+        # Desactivar resumen para MVP (mas rapido, menos procesamiento)
+        adapted_content = adapt_for_audiobook(chapter.content, apply_summary=False)
         adapted_chapters.append((chapter.title, adapted_content))
     
     print("\n🎙️  Generando archivos de audio...")
