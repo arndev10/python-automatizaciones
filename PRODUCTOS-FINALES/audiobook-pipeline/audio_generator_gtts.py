@@ -7,7 +7,7 @@ from gtts import gTTS
 import time
 
 
-def split_text_into_chunks(text: str, max_chars: int = 4500) -> list:
+def split_text_into_chunks(text: str, max_chars: int = 5000) -> list:
     """
     Divide el texto en chunks para evitar el limite de caracteres de gTTS.
     
@@ -66,8 +66,8 @@ def text_to_speech_gtts(text: str, output_path: str, lang: str = 'es', slow: boo
     output_dir = Path(output_path).parent
     output_dir.mkdir(parents=True, exist_ok=True)
     
-    # Dividir texto en chunks si es muy largo
-    text_chunks = split_text_into_chunks(text, max_chars=4500)
+    # Dividir texto en chunks si es muy largo (aumentar a 5000 para menos chunks)
+    text_chunks = split_text_into_chunks(text, max_chars=5000)
     
     temp_files = []
     last_error = None
@@ -93,9 +93,9 @@ def text_to_speech_gtts(text: str, output_path: str, lang: str = 'es', slow: boo
             # Intentar generar audio para este chunk
             for attempt in range(max_retries):
                 try:
-                    # Esperar un poco entre intentos
+                    # Esperar un poco entre intentos (solo si hay error)
                     if attempt > 0:
-                        time.sleep(2 * attempt)
+                        time.sleep(1 * attempt)  # Reducido de 2*attempt a 1*attempt
                     
                     tts = gTTS(text=chunk, lang=lang, slow=slow)
                     tts.save(temp_path)
@@ -111,9 +111,9 @@ def text_to_speech_gtts(text: str, output_path: str, lang: str = 'es', slow: boo
                         raise Exception(f"Error al generar audio para chunk {i+1}: {e}")
                     continue
             
-            # Pequena pausa entre chunks para evitar rate limiting
+            # Pausa minima entre chunks (reducida para mayor velocidad)
             if i < len(text_chunks) - 1:
-                time.sleep(0.5)
+                time.sleep(0.1)  # Reducido de 0.5 a 0.1 segundos
         
         if total_chunks > 5:
             print()  # Nueva linea despues del progreso
@@ -144,7 +144,7 @@ def text_to_speech_gtts(text: str, output_path: str, lang: str = 'es', slow: boo
                     pass
 
 
-def generate_chapter_audio_gtts(chapter_title: str, chapter_content: str, output_dir: Path, chapter_num: int, delay_between_chapters: float = 0.5) -> str:
+def generate_chapter_audio_gtts(chapter_title: str, chapter_content: str, output_dir: Path, chapter_num: int, delay_between_chapters: float = 0.1) -> str:
     """
     Genera audio para un capitulo usando gTTS.
     
