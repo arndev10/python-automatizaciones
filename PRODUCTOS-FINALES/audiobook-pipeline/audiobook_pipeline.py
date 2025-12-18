@@ -59,10 +59,16 @@ async def process_audiobook(pdf_path: str, output_dir: str = "output", tts_engin
     generated_files = []
     
     # Seleccionar funcion de generacion de audio
-    if tts_engine.lower() == 'gtts':
+    if tts_engine.lower() == 'pyttsx3':
+        from audio_generator_pyttsx3 import generate_chapter_audio_pyttsx3
+        generate_func = generate_chapter_audio_pyttsx3
+        is_async = False
+    elif tts_engine.lower() == 'gtts':
+        from audio_generator_gtts import generate_chapter_audio_gtts
         generate_func = generate_chapter_audio_gtts
         is_async = False
     else:
+        from audio_generator import generate_chapter_audio
         generate_func = generate_chapter_audio
         is_async = True
     
@@ -88,8 +94,8 @@ async def process_audiobook(pdf_path: str, output_dir: str = "output", tts_engin
 @click.command()
 @click.argument('pdf_path', type=click.Path(exists=True), required=False)
 @click.option('--output', '-o', default='output', help='Carpeta de salida para los MP3')
-@click.option('--tts', default='gtts', type=click.Choice(['gtts', 'edge'], case_sensitive=False), 
-              help='Motor de texto a voz: gtts (Google, recomendado) o edge (Microsoft)')
+@click.option('--tts', default='pyttsx3', type=click.Choice(['pyttsx3', 'gtts', 'edge'], case_sensitive=False), 
+              help='Motor de texto a voz: pyttsx3 (offline, rapido, recomendado), gtts (Google) o edge (Microsoft)')
 def main(pdf_path: str, output: str, tts: str):
     """Genera audiolibro desde un PDF."""
     # Si no se especifica PDF, buscar en carpeta input
